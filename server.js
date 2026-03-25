@@ -8,12 +8,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 1. Database Connection
+// 1. Database Connection (Ensure MONGO_URI is in Render Environment)
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Connected"))
     .catch(err => console.error("❌ MongoDB Error:", err));
 
-// 2. M-Pesa Setup (Using your Sandbox Keys)
+// 2. M-Pesa Setup (Universal Sandbox Credentials)
 const consumerKey = process.env.MPESA_CONSUMER_KEY || "BC6UQSYwkNW2cuzUQrObeVO7ADo7SmC8Ud1OZQAUWbjyHEHn";
 const consumerSecret = process.env.MPESA_CONSUMER_SECRET || "WG5mBC5MioPjKCNDy0Ul1AYLjURaS5m3PZX3oJ4rkeh6sZ5bZZH0db8jS1P48mAF";
 const shortCode = "174379"; 
@@ -81,20 +81,20 @@ app.post('/api/mpesa/push', async (req, res) => {
 
         res.status(200).json(response.data);
     } catch (err) {
-        console.error("❌ PUSH ERROR:", err.response ? JSON.stringify(err.response.data) : err.message);
+        console.error("❌ PUSH ERROR:", err.response ? JSON.stringify(error.response.data) : err.message);
         res.status(500).json({ error: "Push failed" });
     }
 });
 
-// 6. Routes for Pages
+// 6. Serving Files
 app.use(express.static(path.join(__dirname)));
 
-// Route for Success Page
+// Specific route for success page
 app.get('/success', (req, res) => {
     res.sendFile(path.join(__dirname, 'success.html'));
 });
 
-// Catch-all to fix the PathError and serve index.html
+// Catch-all route for index.html (Required for SPA feel and path-to-regexp fix)
 app.get('(.*)', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });

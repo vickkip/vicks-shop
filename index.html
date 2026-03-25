@@ -2,38 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Vick's M-Pesa Store</title>
+    <title>Vick's M-Pesa Shop</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
-        .product-grid { display: flex; flex-wrap: wrap; justify-content: center; }
-        .card { background: white; padding: 20px; border-radius: 10px; margin: 10px; width: 220px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        button { background: #1eb53a; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 5px; width: 100%; font-weight: bold; font-size: 16px; }
-        button:hover { background: #168a2d; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f8fafc; padding: 20px; color: #1e293b; }
+        .product-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 30px; }
+        .card { background: white; padding: 25px; border-radius: 15px; width: 240px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
+        h3 { margin-top: 0; color: #0f172a; }
+        .price { font-size: 1.2rem; font-weight: bold; color: #16a34a; margin-bottom: 15px; }
+        button { background: #1eb53a; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 8px; width: 100%; font-weight: 600; transition: 0.2s; }
+        button:hover { background: #15803d; transform: translateY(-2px); }
     </style>
 </head>
 <body>
     <h1>Vick's M-Pesa Shop</h1>
-    <div id="product-list" class="product-grid">Loading products...</div>
+    <div id="product-list" class="product-grid">Connecting to database...</div>
 
     <script>
-        async function loadProducts() {
+        async function load() {
             try {
                 const res = await fetch('/api/products');
                 const products = await res.json();
                 document.getElementById('product-list').innerHTML = products.map(p => `
                     <div class="card">
                         <h3>${p.name}</h3>
-                        <p>Price: KES ${p.price}</p>
-                        <button onclick="pay('${p.price}')">Pay with M-Pesa</button>
+                        <p class="price">KES ${p.price}</p>
+                        <button onclick="pay('${p.price}')">Buy with M-Pesa</button>
                     </div>
                 `).join('');
             } catch (err) {
-                document.getElementById('product-list').innerHTML = "Failed to load products.";
+                document.getElementById('product-list').innerHTML = "Check connection...";
             }
         }
 
         async function pay(price) {
-            const phone = prompt("Enter Safaricom Number (e.g. 0712345678):");
+            const phone = prompt("Enter Safaricom Number (07xxxxxxx):");
             if (!phone) return;
 
             const res = await fetch('/api/mpesa/push', {
@@ -43,13 +45,13 @@
             });
 
             if (res.ok) {
-                alert("✅ STK Push Sent! Enter your PIN on your phone, then click OK.");
+                alert("✅ Push Sent! Enter PIN on phone, then click OK.");
                 window.location.href = "/success"; 
             } else {
-                alert("❌ Payment request failed. Check your connection.");
+                alert("❌ Request failed. Use 0721000000 for testing.");
             }
         }
-        loadProducts();
+        load();
     </script>
 </body>
 </html>
