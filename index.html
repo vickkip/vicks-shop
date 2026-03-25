@@ -2,32 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vick's Shop</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; }
-        .product-card { border: 1px solid #ddd; padding: 10px; margin: 10px; display: inline-block; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #f4f4f4; }
+        .container { max-width: 800px; margin: auto; padding: 20px; }
+        .product-card { background: white; border-radius: 8px; padding: 20px; margin: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: inline-block; width: 200px; }
+        h1 { color: #333; }
     </style>
 </head>
 <body>
-    <h1>Welcome to Vick's Shop</h1>
-    <div id="product-list">Loading products...</div>
+    <div class="container">
+        <h1>Vick's Online Shop</h1>
+        <div id="product-list">Searching for products...</div>
+    </div>
 
     <script>
-        // REPLACE THE URL BELOW WITH YOUR ACTUAL RENDER URL
+        // UPDATE THIS LINE WITH YOUR URL
         const API = 'https://vicks-shop.onrender.com/api';
 
-        async function fetchProducts() {
+        async function loadProducts() {
             try {
-                const response = await fetch(`${API}/products`);
-                const data = await response.json();
-                const list = document.getElementById('product-list');
-                
-                if (data.length === 0) {
-                    list.innerHTML = "No products found in database.";
+                const res = await fetch(`${API}/products`);
+                const products = await res.json();
+                const display = document.getElementById('product-list');
+
+                if (products.length === 0) {
+                    display.innerHTML = "<h3>The shop is empty! Add products in MongoDB.</h3>";
                     return;
                 }
 
-                list.innerHTML = data.map(p => `
+                display.innerHTML = products.map(p => `
                     <div class="product-card">
                         <h3>${p.name}</h3>
                         <p>${p.description}</p>
@@ -35,12 +40,11 @@
                     </div>
                 `).join('');
             } catch (err) {
-                document.getElementById('product-list').innerHTML = "Error connecting to server.";
+                document.getElementById('product-list').innerHTML = "Error: Could not connect to the server.";
                 console.error(err);
             }
         }
-
-        fetchProducts();
+        loadProducts();
     </script>
 </body>
 </html>

@@ -7,32 +7,36 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 1. Connect to MongoDB using the Environment Variable we set in Render
+// 1. Database Connection
+// Ensure "MONGO_URI" is set in Render -> Environment Variables
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connected Successfully"))
-    .catch(err => console.log("❌ MongoDB Connection Error:", err));
+    .then(() => console.log("✅ Connected to MongoDB"))
+    .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-// 2. Define a simple Product Schema (Example)
+// 2. Data Schema
 const Product = mongoose.model('Product', new mongoose.Schema({
     name: String,
     price: Number,
     description: String
 }));
 
-// 3. API Routes
+// 3. API Route to get products
 app.get('/api/products', async (req, res) => {
-    const products = await Product.find();
-    res.json(products);
+    try {
+        const products = await Product.find();
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch products" });
+    }
 });
 
-// 4. SERVE FRONTEND FILES (The fix for "Not Found")
-// This tells Express to look for index.html in your folder
+// 4. Serve the Frontend (Fixes the "Not Found" error)
 app.use(express.static(path.join(__dirname)));
 
-// This ensures that any link you visit loads your index.html
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// 5. Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server active on port ${PORT}`));
