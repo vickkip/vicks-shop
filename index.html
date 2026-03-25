@@ -3,34 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vick's Shop - Checkout</title>
+    <title>Vick's M-Pesa Shop</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f8f9fa; padding: 20px; }
-        .product-card { background: white; border-radius: 12px; padding: 20px; margin: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; width: 250px; }
-        button { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #218838; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
+        .product-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        .product-card { background: white; padding: 20px; border-radius: 15px; width: 220px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: #1eb53a; }
+        button { background: #1eb53a; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        button:hover { background: #168a2c; }
     </style>
 </head>
 <body>
-    <h1>Vick's Online Shop</h1>
-    <div id="product-list">Loading items...</div>
+    <h1>Vick's M-Pesa Store</h1>
+    <div id="product-list" class="product-grid">Loading products...</div>
 
     <script>
-        // CHANGE THIS TO YOUR ACTUAL RENDER URL
         const API = 'https://vicks-shop.onrender.com/api';
 
-        async function loadProducts() {
+        async function fetchItems() {
             try {
                 const res = await fetch(`${API}/products`);
                 const products = await res.json();
-                const display = document.getElementById('product-list');
+                const container = document.getElementById('product-list');
 
-                display.innerHTML = products.map(p => `
+                if (products.length === 0) {
+                    container.innerHTML = "No items in shop. Add them in MongoDB Atlas!";
+                    return;
+                }
+
+                container.innerHTML = products.map(p => `
                     <div class="product-card">
                         <h3>${p.name}</h3>
                         <p>${p.description}</p>
-                        <p><strong>$${p.price}</strong></p>
-                        <button onclick="buyProduct('${p.name}', ${p.price})">Buy Now</button>
+                        <p><strong>KES ${p.price}</strong></p>
+                        <button onclick="pay('${p.price}')">Pay with M-Pesa</button>
                     </div>
                 `).join('');
             } catch (err) {
@@ -38,31 +44,28 @@
             }
         }
 
-        async function buyProduct(name, price) {
-            const phone = prompt(`To buy ${name} for $${price}, enter your Phone Number for the payment prompt:`);
-            
-            if (phone && phone.length > 5) {
-                try {
-                    const response = await fetch(`${API}/orders`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ productName: name, customerPhone: phone, amount: price })
-                    });
+        async function pay(price) {
+            const phone = prompt("Enter Safaricom Number (e.g. 0712345678):");
+            if (!phone || phone.length < 10) return alert("Please enter a valid phone number.");
 
-                    if (response.ok) {
-                        alert("✅ Order Sent! Please wait for the payment prompt on " + phone);
-                    } else {
-                        alert("❌ Order failed to send.");
-                    }
-                } catch (err) {
-                    alert("❌ Connection error.");
+            try {
+                const response = await fetch(`${API}/mpesa/push`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: phone, amount: price })
+                });
+
+                if (response.ok) {
+                    alert("✅ STK Push Sent! Check your phone to enter your M-Pesa PIN.");
+                } else {
+                    alert("❌ Error sending M-Pesa prompt. Check your Render logs.");
                 }
-            } else if (phone) {
-                alert("Please enter a valid phone number.");
+            } catch (err) {
+                alert("❌ Connection failed.");
             }
         }
 
-        loadProducts();
+        fetchItems();
     </script>
 </body>
 </html>
