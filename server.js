@@ -88,3 +88,6 @@ app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server live on port ${PORT}`));
+// TEMPORARY TEST - Replace with your real strings
+const consumerKey = "BC6UQSYwkNW2cuzUQrObeVO7ADo7SmC8Ud1OZQAUWbjyHEHn"; 
+const consumerSecret = "WG5mBC5MioPjKCNDy0Ul1AYLjURaS5m3PZX3oJ4rkeh6sZ5bZZH0db8jS1P48mAF";
