@@ -2,70 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vick's M-Pesa Shop</title>
+    <title>Vick's M-Pesa Store</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
-        .product-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-        .product-card { background: white; padding: 20px; border-radius: 15px; width: 220px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { color: #1eb53a; }
-        button { background: #1eb53a; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; }
-        button:hover { background: #168a2c; }
+        body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
+        .product-grid { display: flex; flex-wrap: wrap; justify-content: center; }
+        .card { background: white; padding: 20px; border-radius: 10px; margin: 10px; width: 200px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        button { background: #1eb53a; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Vick's M-Pesa Store</h1>
-    <div id="product-list" class="product-grid">Loading products...</div>
+    <h1>Vick's M-Pesa Shop</h1>
+    <div id="product-list" class="product-grid">Loading...</div>
 
     <script>
         const API = 'https://vicks-shop.onrender.com/api';
 
-        async function fetchItems() {
-            try {
-                const res = await fetch(`${API}/products`);
-                const products = await res.json();
-                const container = document.getElementById('product-list');
-
-                if (products.length === 0) {
-                    container.innerHTML = "No items in shop. Add them in MongoDB Atlas!";
-                    return;
-                }
-
-                container.innerHTML = products.map(p => `
-                    <div class="product-card">
-                        <h3>${p.name}</h3>
-                        <p>${p.description}</p>
-                        <p><strong>KES ${p.price}</strong></p>
-                        <button onclick="pay('${p.price}')">Pay with M-Pesa</button>
-                    </div>
-                `).join('');
-            } catch (err) {
-                console.error("Load error:", err);
-            }
+        async function load() {
+            const res = await fetch(`${API}/products`);
+            const products = await res.json();
+            document.getElementById('product-list').innerHTML = products.map(p => `
+                <div class="card">
+                    <h3>${p.name}</h3>
+                    <p>KES ${p.price}</p>
+                    <button onclick="pay('${p.price}')">Pay with M-Pesa</button>
+                </div>
+            `).join('');
         }
 
         async function pay(price) {
             const phone = prompt("Enter Safaricom Number (e.g. 0712345678):");
-            if (!phone || phone.length < 10) return alert("Please enter a valid phone number.");
+            if (!phone) return;
 
-            try {
-                const response = await fetch(`${API}/mpesa/push`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: phone, amount: price })
-                });
+            const res = await fetch(`${API}/mpesa/push`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, amount: price })
+            });
 
-                if (response.ok) {
-                    alert("✅ STK Push Sent! Check your phone to enter your M-Pesa PIN.");
-                } else {
-                    alert("❌ Error sending M-Pesa prompt. Check your Render logs.");
-                }
-            } catch (err) {
-                alert("❌ Connection failed.");
+            if (res.ok) {
+                alert("✅ STK Push Sent! Check your phone for the PIN prompt.");
+            } else {
+                alert("❌ Payment request failed. Check your Render logs.");
             }
         }
-
-        fetchItems();
+        load();
     </script>
 </body>
 </html>
