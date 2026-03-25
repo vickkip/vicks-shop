@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pro Inventory Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen p-6">
+
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-4xl font-extrabold text-indigo-900">Vick's Shop Admin</h1>
+            <button id="logoutBtn" class="hidden bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-200" onclick="location.reload()">Logout</button>
+        </div>
+
+        <div id="authSection" class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Administrator Login</h2>
+            <input type="text" id="authUser" placeholder="Username" class="w-full p-3 mb-4 border rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none">
+            <input type="password" id="authPass" placeholder="Password" class="w-full p-3 mb-6 border rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none">
+            <button class="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold hover:bg-indigo-700 transition" onclick="handleAuth()">Login / Register</button>
+        </div>
+
+        <div id="adminSection" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
+                <h2 class="text-xl font-bold mb-4 text-gray-700">Add Product</h2>
+                <input type="text" id="name" placeholder="Name" class="w-full p-2 mb-3 border rounded-lg text-sm">
+                <input type="text" id="desc" placeholder="Description" class="w-full p-2 mb-3 border rounded-lg text-sm">
+                <input type="number" id="price" placeholder="Price ($)" class="w-full p-2 mb-3 border rounded-lg text-sm">
+                <input type="text" id="imgUrl" placeholder="Image URL (Link)" class="w-full p-2 mb-4 border rounded-lg text-sm">
+                <button class="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold hover:bg-indigo-700" onclick="saveProduct()">Save Product</button>
+            </div>
+
+            <div class="lg:col-span-3">
+                <input type="text" id="search" placeholder="🔍 Search inventory..." class="w-full p-4 mb-6 rounded-2xl border shadow-sm outline-none focus:ring-2 focus:ring-indigo-200" onkeyup="filterProducts()">
+                <div id="list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/api';
+        let authToken = "";
+        let allProducts = [];
+
+        async function handleAuth() {
+            const user = document.getElementById('authUser').value;
+            const pass = document.getElementById('authPass').value;
+            const res = await fetch(`${API}/auth/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username: user, password: pass })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                authToken = data.token;
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('adminSection').classList.remove('hidden');
+                document.getElementById('logoutBtn').classList.remove('hidden');
+                fetchProducts();
+            } else {
+                await fetch(`${API}/auth/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                alert("Account Created! Try Login now.");
+            }
+        }
+
+        async function fetchProducts() {
+            const res = await fetch(`${API}/products`);
+            allProducts = await res.json();
+            render(allProducts);
+        }
+
+        function render(data) {
+            const listDiv = document.getElementById('list');
+            listDiv.innerHTML = data.map(p => `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
+                    <img src="${p.image || 'https://via.placeholder.com/400'}" class="w-full h-40 object-cover bg-gray-200">
+                    <div class="p-4">
+                        <h4 class="font-bold text-gray-800">${p.name}</h4>
+                        <p class="text-gray-500 text-xs mb-3 truncate">${p.description}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-indigo-600 font-bold">$${p.price}</span>
+                            <button onclick="deleteProd('${p._id}')" class="text-red-400 hover:text-red-600 text-xs font-bold uppercase">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterProducts() {
+            const term = document.getElementById('search').value.toLowerCase();
+            render(allProducts.filter(p => p.name.toLowerCase().includes(term)));
+        }
+
+        async function saveProduct() {
+            const pData = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('desc').value,
+                price: document.getElementById('price').value,
+                image: document.getElementById('imgUrl').value
+            };
+            const res = await fetch(`${API}/products`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': authToken},
+                body: JSON.stringify(pData)
+            });
+            if (res.ok) { fetchProducts(); } else { alert("Please Login First"); }
+        }
+
+        async function deleteProd(id) {
+            if(!confirm("Are you sure?")) return;
+            await fetch(`${API}/products/${id}`, {
+                method: 'DELETE',
+                headers: {'Authorization': authToken}
+            });
+            fetchProducts();
+        }
+
+        fetchProducts(); 
+    </script>
+</body>
+</html>
