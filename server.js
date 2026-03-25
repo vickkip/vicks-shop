@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 1. Connect to MongoDB
+// 1. Database Connection
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Connected"))
     .catch(err => console.error("❌ MongoDB Error:", err));
@@ -82,12 +82,11 @@ app.post('/api/mpesa/push', async (req, res) => {
     }
 });
 
-// 6. Serve Frontend
+// 6. Serve Frontend (FIXED THE PATH ERROR HERE)
 app.use(express.static(path.join(__dirname)));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('(.*)', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server live on port ${PORT}`));
-// TEMPORARY TEST - Replace with your real strings
-const consumerKey = "BC6UQSYwkNW2cuzUQrObeVO7ADo7SmC8Ud1OZQAUWbjyHEHn"; 
-const consumerSecret = "WG5mBC5MioPjKCNDy0Ul1AYLjURaS5m3PZX3oJ4rkeh6sZ5bZZH0db8jS1P48mAF";
