@@ -13,17 +13,18 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Connected"))
     .catch(err => console.error("❌ MongoDB Error:", err));
 
-// 2. M-Pesa Setup (Universal Sandbox Credentials)
-const consumerKey = process.env.MPESA_CONSUMER_KEY;
-const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
+// 2. M-Pesa Setup (Using your Sandbox Keys)
+const consumerKey = process.env.MPESA_CONSUMER_KEY || "BC6UQSYwkNW2cuzUQrObeVO7ADo7SmC8Ud1OZQAUWbjyHEHn";
+const consumerSecret = process.env.MPESA_CONSUMER_SECRET || "WG5mBC5MioPjKCNDy0Ul1AYLjURaS5m3PZX3oJ4rkeh6sZ5bZZH0db8jS1P48mAF";
 const shortCode = "174379"; 
 const passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919";
 
 // 3. Helper: Generate M-Pesa Access Token
 const getAccessToken = async () => {
     try {
-        // .trim() removes hidden spaces that cause "Token Error"
-        const auth = Buffer.from(`${consumerKey.trim()}:${consumerSecret.trim()}`).toString('base64');
+        const k = consumerKey ? consumerKey.trim() : "";
+        const s = consumerSecret ? consumerSecret.trim() : "";
+        const auth = Buffer.from(`${k}:${s}`).toString('base64');
         const response = await axios.get("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
             headers: { Authorization: `Basic ${auth}` }
         });
@@ -85,8 +86,15 @@ app.post('/api/mpesa/push', async (req, res) => {
     }
 });
 
-// 6. Serve Frontend (Fixes PathError)
+// 6. Routes for Pages
 app.use(express.static(path.join(__dirname)));
+
+// Route for Success Page
+app.get('/success', (req, res) => {
+    res.sendFile(path.join(__dirname, 'success.html'));
+});
+
+// Catch-all to fix the PathError and serve index.html
 app.get('(.*)', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });

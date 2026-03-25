@@ -6,46 +6,50 @@
     <style>
         body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
         .product-grid { display: flex; flex-wrap: wrap; justify-content: center; }
-        .card { background: white; padding: 20px; border-radius: 10px; margin: 10px; width: 200px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        button { background: #1eb53a; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; width: 100%; font-weight: bold; }
+        .card { background: white; padding: 20px; border-radius: 10px; margin: 10px; width: 220px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        button { background: #1eb53a; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 5px; width: 100%; font-weight: bold; font-size: 16px; }
+        button:hover { background: #168a2d; }
     </style>
 </head>
 <body>
     <h1>Vick's M-Pesa Shop</h1>
-    <div id="product-list" class="product-grid">Loading...</div>
+    <div id="product-list" class="product-grid">Loading products...</div>
 
     <script>
-        const API = 'https://vicks-shop.onrender.com/api';
-
-        async function load() {
-            const res = await fetch(`${API}/products`);
-            const products = await res.json();
-            document.getElementById('product-list').innerHTML = products.map(p => `
-                <div class="card">
-                    <h3>${p.name}</h3>
-                    <p>KES ${p.price}</p>
-                    <button onclick="pay('${p.price}')">Pay with M-Pesa</button>
-                </div>
-            `).join('');
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/products');
+                const products = await res.json();
+                document.getElementById('product-list').innerHTML = products.map(p => `
+                    <div class="card">
+                        <h3>${p.name}</h3>
+                        <p>Price: KES ${p.price}</p>
+                        <button onclick="pay('${p.price}')">Pay with M-Pesa</button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('product-list').innerHTML = "Failed to load products.";
+            }
         }
 
         async function pay(price) {
             const phone = prompt("Enter Safaricom Number (e.g. 0712345678):");
             if (!phone) return;
 
-            const res = await fetch(`${API}/mpesa/push`, {
+            const res = await fetch('/api/mpesa/push', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone, amount: price })
             });
 
             if (res.ok) {
-                alert("✅ STK Push Sent! Check your phone for the PIN prompt.");
+                alert("✅ STK Push Sent! Enter your PIN on your phone, then click OK.");
+                window.location.href = "/success"; 
             } else {
-                alert("❌ Payment request failed. Check your Render logs.");
+                alert("❌ Payment request failed. Check your connection.");
             }
         }
-        load();
+        loadProducts();
     </script>
 </body>
 </html>
