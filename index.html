@@ -3,22 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vick's Shop</title>
+    <title>Vick's Shop - Checkout</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #f4f4f4; }
-        .container { max-width: 800px; margin: auto; padding: 20px; }
-        .product-card { background: white; border-radius: 8px; padding: 20px; margin: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: inline-block; width: 200px; }
-        h1 { color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f8f9fa; padding: 20px; }
+        .product-card { background: white; border-radius: 12px; padding: 20px; margin: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; width: 250px; }
+        button { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #218838; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Vick's Online Shop</h1>
-        <div id="product-list">Searching for products...</div>
-    </div>
+    <h1>Vick's Online Shop</h1>
+    <div id="product-list">Loading items...</div>
 
     <script>
-        // UPDATE THIS LINE WITH YOUR URL
+        // CHANGE THIS TO YOUR ACTUAL RENDER URL
         const API = 'https://vicks-shop.onrender.com/api';
 
         async function loadProducts() {
@@ -27,23 +25,43 @@
                 const products = await res.json();
                 const display = document.getElementById('product-list');
 
-                if (products.length === 0) {
-                    display.innerHTML = "<h3>The shop is empty! Add products in MongoDB.</h3>";
-                    return;
-                }
-
                 display.innerHTML = products.map(p => `
                     <div class="product-card">
                         <h3>${p.name}</h3>
                         <p>${p.description}</p>
                         <p><strong>$${p.price}</strong></p>
+                        <button onclick="buyProduct('${p.name}', ${p.price})">Buy Now</button>
                     </div>
                 `).join('');
             } catch (err) {
-                document.getElementById('product-list').innerHTML = "Error: Could not connect to the server.";
-                console.error(err);
+                console.error("Load error:", err);
             }
         }
+
+        async function buyProduct(name, price) {
+            const phone = prompt(`To buy ${name} for $${price}, enter your Phone Number for the payment prompt:`);
+            
+            if (phone && phone.length > 5) {
+                try {
+                    const response = await fetch(`${API}/orders`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productName: name, customerPhone: phone, amount: price })
+                    });
+
+                    if (response.ok) {
+                        alert("✅ Order Sent! Please wait for the payment prompt on " + phone);
+                    } else {
+                        alert("❌ Order failed to send.");
+                    }
+                } catch (err) {
+                    alert("❌ Connection error.");
+                }
+            } else if (phone) {
+                alert("Please enter a valid phone number.");
+            }
+        }
+
         loadProducts();
     </script>
 </body>
