@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Eldoret Computer Tech</title>
+    <style>
+        body { font-family: sans-serif; background: #cbd5e1; padding: 40px; }
+        .box { background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .save-btn { background: #2563eb; color: white; width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .item { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 15px 0; align-items: center; }
+        .del { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Add Tech Product</h2>
+        <input type="text" id="name" placeholder="Item Name (e.g. Dell Latitude 5490)">
+        <input type="number" id="price" placeholder="Price (KES)">
+        <button class="save-btn" onclick="save()">Add to Inventory</button>
+
+        <h3>Current Stock</h3>
+        <div id="admin-list"></div>
+    </div>
+
+    <script>
+        // Password Protection
+        const pass = prompt("Enter Admin Password:");
+        if(pass !== "admin") {
+            alert("Wrong Password!");
+            window.location.href = "/";
+        }
+
+        async function load() {
+            const res = await fetch('/api/products');
+            const products = await res.json();
+            document.getElementById('admin-list').innerHTML = products.map(p => `
+                <div class="item">
+                    <span>${p.name} - <strong>KES ${p.price}</strong></span>
+                    <button class="del" onclick="del('${p._id}')">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        async function save() {
+            const name = document.getElementById('name').value;
+            const price = document.getElementById('price').value;
+            if(!name || !price) return;
+            await fetch('/api/products', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name, price })
+            });
+            location.reload();
+        }
+
+        async function del(id) {
+            if(confirm("Permanently remove this item?")) {
+                await fetch(`/api/products/${id}`, { method: 'DELETE' });
+                location.reload();
+            }
+        }
+        load();
+    </script>
+</body>
+</html>
