@@ -13,13 +13,13 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Connected"))
     .catch(err => console.error("❌ MongoDB Error:", err));
 
-// 2. Safaricom Credentials (from Render Environment Variables)
+// 2. M-Pesa Configuration (Environment Variables)
 const consumerKey = process.env.MPESA_CONSUMER_KEY;
 const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
 const shortCode = "174379"; 
 const passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919";
 
-// 3. Helper: Get M-Pesa Access Token
+// 3. Helper: Generate Access Token
 const getAccessToken = async () => {
     try {
         const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
@@ -28,16 +28,20 @@ const getAccessToken = async () => {
         });
         return response.data.access_token;
     } catch (error) {
-        console.error("❌ Token Error:", error.response ? error.response.data : error.message);
+        console.error("❌ M-Pesa Token Error:", error.response ? error.response.data : error.message);
         throw error;
     }
 };
 
-// 4. API: Products List
+// 4. API: Products
 const Product = mongoose.model('Product', new mongoose.Schema({ name: String, price: Number, description: String }));
 app.get('/api/products', async (req, res) => {
-    const products = await Product.find();
-    res.json(products);
+    try {
+        const products = await Product.find();
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ error: "Could not load products" });
+    }
 });
 
 // 5. API: M-Pesa STK Push
@@ -47,6 +51,8 @@ app.post('/api/mpesa/push', async (req, res) => {
 
     try {
         const token = await getAccessToken();
+        
+        // Generate Timestamp
         const date = new Date();
         const timestamp = date.getFullYear() +
             ("0" + (date.getMonth() + 1)).slice(-2) +
@@ -66,7 +72,7 @@ app.post('/api/mpesa/push', async (req, res) => {
             PartyA: formattedPhone,
             PartyB: shortCode,
             PhoneNumber: formattedPhone,
-            CallBackURL: "https://vicks-shop.onrender.com/api/callback",
+            CallBackURL: "https://vicks-shop.onrender.com/api/callback", 
             AccountReference: "VicksShop",
             TransactionDesc: "Payment for Goods"
         };
@@ -77,16 +83,18 @@ app.post('/api/mpesa/push', async (req, res) => {
 
         res.status(200).json(response.data);
     } catch (err) {
-        console.error("❌ Push Error:", err.response ? err.response.data : err.message);
-        res.status(500).json({ error: "M-Pesa push failed" });
+        console.error("❌ M-Pesa Push Error:", err.response ? err.response.data : err.message);
+        res.status(500).json({ error: "STK Push failed" });
     }
 });
 
-// 6. Serve Frontend (FIXED THE PATH ERROR HERE)
+// 6. Serve Frontend (Fixed PathError Fix)
 app.use(express.static(path.join(__dirname)));
+
+// We use (.*) instead of * to prevent the "Missing parameter name" error
 app.get('(.*)', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server live on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server active on port ${PORT}`));
