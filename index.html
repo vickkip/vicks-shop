@@ -4,14 +4,17 @@
     <meta charset="UTF-8">
     <title>Eldoret Computer Technologies</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f8fafc; padding: 20px; color: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f8fafc; padding: 20px; color: #1e293b; margin: 0; }
         .header { background: #1e293b; color: white; padding: 30px; border-radius: 12px; margin-bottom: 40px; }
-        .product-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        .product-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; min-height: 300px; }
         .card { background: white; padding: 20px; border-radius: 15px; width: 260px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 6px solid #2563eb; transition: 0.3s; }
         .card:hover { transform: translateY(-5px); }
         .price { color: #16a34a; font-size: 1.4rem; font-weight: bold; margin: 15px 0; }
         button { background: #1eb53a; color: white; border: none; padding: 14px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-size: 1rem; }
         button:hover { background: #15803d; }
+        footer { margin-top: 50px; padding: 20px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.9rem; }
+        .admin-link { color: #94a3b8; text-decoration: none; margin-top: 10px; display: inline-block; }
+        .admin-link:hover { color: #1e293b; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -21,6 +24,11 @@
     </div>
 
     <div id="product-list" class="product-grid">Loading Inventory...</div>
+
+    <footer>
+        <p>&copy; 2026 Eldoret Computer Technologies</p>
+        <a href="/admin" class="admin-link">Staff Login</a>
+    </footer>
 
     <script>
         async function load() {

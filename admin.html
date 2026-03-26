@@ -10,12 +10,14 @@
         .save-btn { background: #2563eb; color: white; width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .item { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 15px 0; align-items: center; }
         .del { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .nav-back { margin-bottom: 20px; display: block; color: #1e293b; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="box">
+        <a href="/" class="nav-back">← Back to Shop</a>
         <h2>Add Tech Product</h2>
-        <input type="text" id="name" placeholder="Item Name (e.g. Dell Latitude 5490)">
+        <input type="text" id="name" placeholder="Item Name">
         <input type="number" id="price" placeholder="Price (KES)">
         <button class="save-btn" onclick="save()">Add to Inventory</button>
 
@@ -24,10 +26,10 @@
     </div>
 
     <script>
-        // Password Protection
+        // Updated Password Protection
         const pass = prompt("Enter Admin Password:");
-        if(pass !== "admin") {
-            alert("Wrong Password!");
+        if(pass !== "admin123") {
+            alert("❌ Access Denied!");
             window.location.href = "/";
         }
 
